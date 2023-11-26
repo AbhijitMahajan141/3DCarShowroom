@@ -69,7 +69,7 @@ const helper2 = new THREE.CameraHelper(spotLight.shadow.camera);
 const helper3 = new THREE.CameraHelper(pointLight.shadow.camera);
 
 // Car loader //
-const assetLoader = new GLTFLoader().setPath("./assets/lambo/");
+const assetLoader = new GLTFLoader().setPath("./src/assets/lambo/");
 assetLoader.load(
   "scene.gltf",
   function (gltf) {
