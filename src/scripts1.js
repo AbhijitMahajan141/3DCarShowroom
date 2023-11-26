@@ -126,7 +126,7 @@ plane.rotation.x = -0.5 * Math.PI;
 
 // Light Toggle Code
 const lightTypes = {
-  Directional: false,
+  Directional: true,
   Point: false,
   Spot: false,
 };
