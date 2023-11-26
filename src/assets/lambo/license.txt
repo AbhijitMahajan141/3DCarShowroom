@@ -1,0 +1,11 @@
+Model Information:
+* title:	Huracan-Sterrato
+* source:	https://sketchfab.com/3d-models/huracan-sterrato-15e404780fd1479790d47d0486f071cb
+* author:	BRO (https://sketchfab.com/musawork786)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Huracan-Sterrato" (https://sketchfab.com/3d-models/huracan-sterrato-15e404780fd1479790d47d0486f071cb) by BRO (https://sketchfab.com/musawork786) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

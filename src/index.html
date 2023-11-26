@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js Application</title>
+    <style>
+        * {
+            margin: 0;
+            /* overflow: hidden; */
+        }
+        .container{
+          position: relative;
+          display: flex;
+          justify-content: center;
+        }
+        .logo{
+          position: absolute;
+          /* z-index: -1; */
+        }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/"
+        }
+      }
+    </script>
+    
+</head>
+
+<body class="container">
+  
+  <img class="logo" src="./assets/logo.png" alt="Lamborghini" width="50%" height="200" />
+
+  <!-- <script src="/src/scripts.js" type="module"></script> -->
+  <script src="/src/scripts1.js" type="module"></script>
+</body>
+</html>
