@@ -7,9 +7,9 @@
     <style>
         * {
             margin: 0;
-            /* overflow: hidden; */
         }
         .container{
+          height: 90vh;
           position: relative;
           display: flex;
           justify-content: center;
@@ -17,6 +17,25 @@
         .logo{
           position: absolute;
           /* z-index: -1; */
+        }
+        .text-container{
+          position: absolute;
+          align-self: flex-end;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+        }
+        .slogan{
+          font-size:xx-large;
+          font-family: 'Times New Roman', Times, serif;
+          font-style: italic;
+          color: rgb(243, 185, 115);
+          margin-bottom: 10px;
+        }
+        .content{
+          font-size: 20;
+          color: darkgray;
         }
     </style>
     <script type="importmap">
@@ -33,7 +52,18 @@
 <body class="container">
   
   <img class="logo" src="./src/assets/logo.png" alt="Lamborghini" width="50%" height="200" />
+  <div class="text-container">
 
+    <h3 class="slogan"> Unleash the Extraordinary: Experience the Power of Lamborghini. </h3>
+    <p class="content">
+      Welcome to the pinnacle of automotive excellence, where luxury meets adrenaline in every sleek line and powerful roar.
+    </p>
+    <p class="content">  
+      At Lamborghini, we craft more than just cars; we engineer dreams that ignite the senses and push the boundaries of
+      possibility.
+    </p>
+    
+  </div>
   <!-- <script src="/src/scripts.js" type="module"></script> -->
   <script src="./src/scripts1.js" type="module"></script>
 </body>
