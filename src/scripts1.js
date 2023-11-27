@@ -3,7 +3,7 @@ import { OrbitControls } from "https://threejs.org/examples/jsm/controls/OrbitCo
 import { GLTFLoader } from "https://threejs.org/examples/jsm/loaders/GLTFLoader.js";
 import * as dat from "https://cdn.skypack.dev/dat.gui";
 
-const canvas = document.querySelector("#c1");
+// const canvas = document.querySelector("#c1");
 
 // Car switching code //
 const carModels = [
@@ -55,7 +55,7 @@ loadCarModel(carModels[currentModelIndex]);
 // Car Switching code till here //
 
 // Renderer //
-const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas });
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
