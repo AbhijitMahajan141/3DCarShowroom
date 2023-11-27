@@ -3,9 +3,60 @@ import { OrbitControls } from "https://threejs.org/examples/jsm/controls/OrbitCo
 import { GLTFLoader } from "https://threejs.org/examples/jsm/loaders/GLTFLoader.js";
 import * as dat from "https://cdn.skypack.dev/dat.gui";
 
+const canvas = document.querySelector("#c1");
+
+// Car switching code //
+const carModels = [
+  "./src/assets/aventador/scene.gltf",
+  "./src/assets/aventador2/scene.gltf",
+  // "./src/assets/huracan/scene.gltf",
+];
+let currentModelIndex = 0;
+
+const nextButton = document.getElementById("next");
+
+nextButton.addEventListener("click", () => {
+  currentModelIndex = (currentModelIndex + 1) % carModels.length; // Increment index or loop back to 0 when reaching the end
+  loadCarModel(carModels[currentModelIndex]); // Load the next car model
+});
+
+// Car loading function
+function loadCarModel(modelPath) {
+  const assetLoader = new GLTFLoader();
+  assetLoader.load(
+    modelPath,
+    function (gltf) {
+      const model = gltf.scene;
+      model.traverse((c) => {
+        c.castShadow = true;
+      });
+
+      model.position.set(0, 0, 0);
+
+      model.scale.set(0.5, 0.5, 0.5);
+
+      // Remove the previous car model from the scene if exists
+      const previousModel = scene.getObjectByName("carModel");
+      if (previousModel) {
+        scene.remove(previousModel);
+      }
+
+      model.name = "carModel"; // Set a name for the model to easily identify and remove it later
+      scene.add(model);
+    },
+    undefined,
+    function (error) {
+      console.error(error);
+    }
+  );
+}
+
+loadCarModel(carModels[currentModelIndex]);
+// Car Switching code till here //
+
 // Renderer //
-const renderer = new THREE.WebGLRenderer();
-// renderer.outputColorSpace = THREE.SRGBColorSpace;
+const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas });
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -22,10 +73,10 @@ scene.background = new THREE.Color(0xffffff);
 
 // Camera //
 const camera = new THREE.PerspectiveCamera(
-  90,
+  20,
   window.innerWidth / window.innerHeight,
   1,
-  100
+  50
 );
 
 // Light //
@@ -34,16 +85,22 @@ const light1 = new THREE.AmbientLight(0xffffff, 1);
 const dirLight = new THREE.DirectionalLight(0xffffff, 8);
 dirLight.position.set(3, 4, 4);
 dirLight.castShadow = true;
+dirLight.shadow.mapSize.width = 2048;
+dirLight.shadow.mapSize.height = 2048;
 scene.add(dirLight);
 
 const spotLight = new THREE.SpotLight(0xffffff, 100, 50, 0.9, 0.5, 2);
 spotLight.position.set(0, 7, 2);
 spotLight.castShadow = true;
+spotLight.shadow.mapSize.width = 2048;
+spotLight.shadow.mapSize.height = 2048;
 scene.add(spotLight);
 
 const pointLight = new THREE.PointLight(0xffffff, 200, 200);
 pointLight.position.set(0, 7, -2);
 pointLight.castShadow = true;
+pointLight.shadow.mapSize.width = 2048;
+pointLight.shadow.mapSize.height = 2048;
 scene.add(pointLight);
 
 scene.add(light1);
@@ -52,8 +109,8 @@ scene.add(light1);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.autoRotate = false;
 // controls.autoRotateSpeed = 0.05;
-// controls.enableDamping = true;
-// controls.dampingFactor = 0.25;
+controls.enableDamping = true;
+controls.dampingFactor = 0.5;
 controls.target.set(0, 0, 0);
 controls.maxDistance = 10;
 controls.minDistance = 5;
@@ -69,28 +126,27 @@ const helper2 = new THREE.CameraHelper(spotLight.shadow.camera);
 const helper3 = new THREE.CameraHelper(pointLight.shadow.camera);
 
 // Car loader //
-const assetLoader = new GLTFLoader().setPath("./src/assets/lambo/");
-assetLoader.load(
-  "scene.gltf",
-  function (gltf) {
-    const model = gltf.scene;
-    model.traverse((c) => {
-      c.castShadow = true;
-    });
+// const assetLoader = new GLTFLoader().setPath("./src/assets/lambo/");
+// assetLoader.load(
+//   "scene.gltf",
+//   function (gltf) {
+//     const model = gltf.scene;
+//     model.traverse((c) => {
+//       c.castShadow = true;
+//     });
 
-    model.position.set(0, 0, 0);
-    model.scale.set(150, 150, 150);
-    // model.rotation.x = -0.5 * Math.PI;
-    scene.add(model);
-  },
-  undefined,
-  function (error) {
-    console.error(error);
-  }
-);
+//     model.position.set(0, 0, 0);
+//     model.scale.set(50, 50, 50);
+//     scene.add(model);
+//   },
+//   undefined,
+//   function (error) {
+//     console.error(error);
+//   }
+// );
 
 // Plane //
-const planeGeometry = new THREE.PlaneGeometry(10, 10);
+const planeGeometry = new THREE.PlaneGeometry(5, 5);
 const planeMaterial = new THREE.MeshStandardMaterial(
   0xffffff,
   THREE.DoubleSide
@@ -228,9 +284,15 @@ setInitialVisibility();
 
 // Animation function //
 function animate() {
-  controls.update(); // required if controls.enableDamping or controls.autoRotate are set to true
+  // required if controls.enableDamping or controls.autoRotate are set to true
+  controls.update();
+
   // animateSpotlightCircularMotion(); // new
-  requestAnimationFrame(animate);
+
+  // a method used to create smooth and efficient animations by synchronizing with the browser's repaint cycle.
+  // Needed only when there are moving objects in seen.
+  // requestAnimationFrame(animate);
+
   renderer.render(scene, camera);
 }
 
