@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "https://threejs.org/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "https://threejs.org/examples/jsm/loaders/GLTFLoader.js";
 import * as dat from "https://cdn.skypack.dev/dat.gui";
+import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
 
 // const canvas = document.querySelector("#c1");
 
@@ -9,20 +10,21 @@ import * as dat from "https://cdn.skypack.dev/dat.gui";
 const carModels = [
   "./src/assets/aventador/scene.gltf",
   "./src/assets/aventador2/scene.gltf",
-  // "./src/assets/huracan/scene.gltf",
 ];
 let currentModelIndex = 0;
 
 const nextButton = document.getElementById("next");
+const loaderElement = document.getElementById("loader");
 
-nextButton.addEventListener("click", () => {
-  currentModelIndex = (currentModelIndex + 1) % carModels.length; // Increment index or loop back to 0 when reaching the end
-  loadCarModel(carModels[currentModelIndex]); // Load the next car model
-});
+// DracoLoader configuration
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/");
+
+const assetLoader = new GLTFLoader();
+assetLoader.setDRACOLoader(dracoLoader); // Attach DRACOLoader to GLTFLoader
 
 // Car loading function
 function loadCarModel(modelPath) {
-  const assetLoader = new GLTFLoader();
   assetLoader.load(
     modelPath,
     function (gltf) {
@@ -35,7 +37,6 @@ function loadCarModel(modelPath) {
 
       model.scale.set(0.5, 0.5, 0.5);
 
-      // Remove the previous car model from the scene if exists
       const previousModel = scene.getObjectByName("carModel");
       if (previousModel) {
         scene.remove(previousModel);
@@ -43,15 +44,25 @@ function loadCarModel(modelPath) {
 
       model.name = "carModel"; // Set a name for the model to easily identify and remove it later
       scene.add(model);
+
+      loaderElement.innerText = "";
     },
-    undefined,
+    (xhr) => {
+      const percentLoaded = (xhr.loaded / xhr.total) * 100;
+      loaderElement.innerHTML = percentLoaded.toFixed(2) + "% loaded";
+    },
     function (error) {
       console.error(error);
     }
   );
 }
 
-loadCarModel(carModels[currentModelIndex]);
+nextButton.addEventListener("click", () => {
+  currentModelIndex = (currentModelIndex + 1) % carModels.length; // Increment index or loop back to 0 when reaching the end
+  loadCarModel(carModels[currentModelIndex]); // Load the next car model
+});
+
+loadCarModel(carModels[currentModelIndex]); // Load initial car model
 // Car Switching code till here //
 
 // Renderer //
