@@ -1,60 +1,15 @@
 import * as THREE from "three";
 import { OrbitControls } from "https://threejs.org/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "https://threejs.org/examples/jsm/loaders/GLTFLoader.js";
+import { FBXLoader } from "https://threejs.org/examples/jsm/loaders/FBXLoader.js";
 
-const car = new URL("./assets/lambo/scene.gltf", import.meta.url);
-
-// Car switching code //
-const carModels = [
-  "./src/assets/aventador/scene.gltf",
-  "./src/assets/aventador2/scene.gltf",
-  // "./src/assets/huracan/scene.gltf",
-];
-let currentModelIndex = 0;
-
-const nextButton = document.getElementById("next");
-
-nextButton.addEventListener("click", () => {
-  currentModelIndex = (currentModelIndex + 1) % carModels.length; // Increment index or loop back to 0 when reaching the end
-  loadCarModel(carModels[currentModelIndex]); // Load the next car model
-});
-// Car loading function
-function loadCarModel(modelPath) {
-  // console.log(index);
-  const assetLoader = new GLTFLoader();
-  assetLoader.load(
-    modelPath,
-    function (gltf) {
-      const model = gltf.scene;
-      model.traverse((c) => {
-        c.castShadow = true;
-      });
-
-      model.position.set(0, 0, 0);
-      // if (index === 0) {
-      model.scale.set(0.5, 0.5, 0.5);
-      // } else {
-      //   model.scale.set(0.5, 0.5, 0.5);
-      // }
-
-      // Remove the previous car model from the scene if exists
-      const previousModel = scene.getObjectByName("carModel");
-      if (previousModel) {
-        scene.remove(previousModel);
-      }
-
-      model.name = "carModel"; // Set a name for the model to easily identify and remove it later
-      scene.add(model);
-    },
-    undefined,
-    function (error) {
-      console.error(error);
-    }
-  );
-}
-
-loadCarModel(carModels[currentModelIndex]);
-// Car Switching code till here //
+// const car = new URL("./assets/centenario/scene.gltf", import.meta.url);
+const character = new URL("./assets/character/char.fbx", import.meta.url);
+const characterAnim = new URL("./assets/character/hiphop.fbx", import.meta.url);
+const characterAnim2 = new URL(
+  "./assets/character/hiphop2.fbx",
+  import.meta.url
+);
 
 // renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -63,7 +18,7 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setAnimationLoop(animation);
+// renderer.setAnimationLoop(animation); // dont use this when playing animations.
 document.body.appendChild(renderer.domElement);
 
 // Scene
@@ -74,9 +29,9 @@ const camera = new THREE.PerspectiveCamera(
   30,
   window.innerWidth / window.innerHeight,
   1,
-  50
+  100
 );
-camera.position.set(0, 2, 7);
+camera.position.set(0, 4, 8);
 
 // Lighting
 const light1 = new THREE.AmbientLight(0x404040, 1); // does not cast shadows
@@ -116,7 +71,7 @@ const orbit = new OrbitControls(camera, renderer.domElement);
 orbit.update(); // Must be called after any manual changes to camera's transform as above
 
 // Plane
-const planeGeometry = new THREE.PlaneGeometry(5, 5);
+const planeGeometry = new THREE.PlaneGeometry(10, 10);
 const planeMaterial = new THREE.MeshStandardMaterial({
   color: 0xffffff,
   side: THREE.DoubleSide,
@@ -128,7 +83,7 @@ scene.add(plane);
 plane.rotation.x = -0.5 * Math.PI;
 
 // Grid helper //
-const gridHelper = new THREE.GridHelper(5);
+const gridHelper = new THREE.GridHelper(10);
 scene.add(gridHelper);
 
 // Camera Helper //
@@ -145,7 +100,8 @@ scene.add(helper);
 //       c.castShadow = true;
 //     });
 //     model.position.set(0, 0, 0);
-//     model.scale.set(100, 100, 100);
+//     model.scale.set(1, 1, 1);
+
 //     scene.add(model);
 //   },
 //   undefined,
@@ -154,17 +110,48 @@ scene.add(helper);
 //   }
 // );
 
-// animation
-// let step = 2;
-// let speed = 0.01;
-function animation(time) {
-  // mesh.rotation.x = time / 2000;
-  // mesh.rotation.y = time / 1000;
-  // step += speed;
-  // sphere.position.y = 3 * Math.abs(Math.sin(step));
+// Character Loader //
+let mixer = null;
+let animationAction = null;
+const fbxLoader = new FBXLoader();
+fbxLoader.load(character.href, (obj) => {
+  obj.scale.setScalar(0.01);
+  obj.traverse((c) => {
+    c.castShadow = true;
+  });
 
+  fbxLoader.load(characterAnim.href, (anim) => {
+    mixer = new THREE.AnimationMixer(obj);
+    const action = mixer.clipAction(anim.animations[0]);
+    // action.play();
+    animationAction = action;
+  });
+  scene.add(obj);
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space") {
+    if (mixer && mixer._actions.length > 0) {
+      const action = mixer._actions[0]; // Assuming only one animation action
+      action.play(); // Start playing the animation
+    }
+  } else if (e.code === "Tab") {
+    if (animationAction) {
+      animationAction.stop();
+    }
+  }
+});
+
+function animation() {
+  if (mixer !== null) {
+    // Check if mixer is initialized
+    mixer.update(clock.getDelta()); // Update the animation mixer
+  }
   renderer.render(scene, camera);
+  requestAnimationFrame(animation);
 }
+const clock = new THREE.Clock();
+animation();
 
 // Responsive Window //
 window.addEventListener("resize", function () {

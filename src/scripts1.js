@@ -48,8 +48,8 @@ function loadCarModel(modelPath) {
       loaderElement.innerText = "";
     },
     (xhr) => {
-      const percentLoaded = (xhr.loaded / xhr.total) * 100;
-      loaderElement.innerHTML = percentLoaded.toFixed(2) + "% loaded";
+      const percentLoaded = (xhr.loaded / xhr.total) * 10;
+      loaderElement.innerHTML = percentLoaded.toFixed(1) + "% loaded";
     },
     function (error) {
       console.error(error);
