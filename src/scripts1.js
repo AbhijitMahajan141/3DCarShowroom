@@ -3,6 +3,10 @@ import { OrbitControls } from "https://threejs.org/examples/jsm/controls/OrbitCo
 import { GLTFLoader } from "https://threejs.org/examples/jsm/loaders/GLTFLoader.js";
 import * as dat from "https://cdn.skypack.dev/dat.gui";
 import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
+import { FBXLoader } from "https://threejs.org/examples/jsm/loaders/FBXLoader.js";
+
+const character = new URL("./assets/character/char.fbx", import.meta.url);
+const characterAnim = new URL("./assets/character/hiphop.fbx", import.meta.url);
 
 // const canvas = document.querySelector("#c1");
 
@@ -293,19 +297,56 @@ function setInitialVisibility() {
 
 setInitialVisibility();
 
+// Loading Animated Model //
+let mixer = null;
+let animationAction = null;
+const fbxLoader = new FBXLoader();
+fbxLoader.load(character.href, (obj) => {
+  obj.position.set(-1, 0, 0);
+  obj.scale.setScalar(0.005);
+  obj.traverse((c) => {
+    c.castShadow = true;
+  });
+
+  fbxLoader.load(characterAnim.href, (anim) => {
+    mixer = new THREE.AnimationMixer(obj);
+    const action = mixer.clipAction(anim.animations[0]);
+    // action.play();
+    animationAction = action;
+  });
+  scene.add(obj);
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space") {
+    if (mixer && mixer._actions.length > 0) {
+      const action = mixer._actions[0]; // Assuming only one animation action
+      action.play(); // Start playing the animation
+    }
+  } else if (e.code === "Tab") {
+    if (animationAction) {
+      animationAction.stop();
+    }
+  }
+});
+
 // Animation function //
 function animate() {
   // required if controls.enableDamping or controls.autoRotate are set to true
-  controls.update();
-
+  // controls.update();
+  if (mixer !== null) {
+    // Check if mixer is initialized
+    mixer.update(clock.getDelta()); // Update the animation mixer
+  }
   // animateSpotlightCircularMotion(); // new
 
+  renderer.render(scene, camera);
   // a method used to create smooth and efficient animations by synchronizing with the browser's repaint cycle.
   // Needed only when there are moving objects in seen.
   // requestAnimationFrame(animate);
-
-  renderer.render(scene, camera);
 }
+const clock = new THREE.Clock();
+animate();
 
 // Responsive Window //
 window.addEventListener("resize", function () {
