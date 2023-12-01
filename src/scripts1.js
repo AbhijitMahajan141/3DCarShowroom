@@ -171,30 +171,6 @@ plane.receiveShadow = true;
 scene.add(plane);
 plane.rotation.x = -0.5 * Math.PI;
 
-// Circular Spotlight code
-
-// // Spotlight for circular motion above the car //
-// const spotlight = new THREE.SpotLight(0xffffff, 100, 50, 0.9, 0.5, 2);
-// spotlight.position.set(0, 5, 0); // Set initial position above the car
-// spotlight.castShadow = true;
-// scene.add(spotlight);
-
-// // Variables for spotlight circular motion animation //
-// const spotlightCenter = new THREE.Vector3(0, 0, 0); // Center point for circular motion
-// const spotlightRadius = 5; // Radius of the circular path
-// let spotlightAngle = 0; // Initial angle
-
-// // Function to animate spotlight's circular motion //
-// function animateSpotlightCircularMotion() {
-//   const angularSpeed = 0.0005; // Constant speed for the animation
-//   spotlightAngle += angularSpeed;
-//   const x = spotlightCenter.x + spotlightRadius * Math.cos(spotlightAngle);
-//   const z = spotlightCenter.z + spotlightRadius * Math.sin(spotlightAngle);
-//   spotlight.position.set(x, 10, z); // Update spotlight position along the circular path
-
-//   renderer.render(scene, camera);
-// }
-
 // Light Toggle Code
 const lightTypes = {
   Directional: true,
@@ -302,6 +278,7 @@ let mixer = null;
 let animationAction = null;
 const fbxLoader = new FBXLoader();
 fbxLoader.load(character.href, (obj) => {
+  console.log(obj);
   obj.position.set(-1, 0, 0);
   obj.scale.setScalar(0.005);
   obj.traverse((c) => {
@@ -330,6 +307,69 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
+// Character Movement //
+const characterSpeed = 0.03;
+const characterPosition = { x: -1, y: 0, z: 0 };
+let moveForward = false;
+let moveBackward = false;
+let moveLeft = false;
+let moveRight = false;
+
+function updateCharacterPosition() {
+  if (moveForward) characterPosition.z -= characterSpeed;
+  if (moveBackward) characterPosition.z += characterSpeed;
+  if (moveLeft) characterPosition.x -= characterSpeed;
+  if (moveRight) characterPosition.x += characterSpeed;
+
+  // console.log(scene.getObjectById(42));
+
+  const character = scene.getObjectById(42);
+  if (character) {
+    character.position.set(
+      characterPosition.x,
+      characterPosition.y,
+      characterPosition.z
+    );
+  }
+}
+
+document.addEventListener("keydown", (e) => {
+  switch (e.code) {
+    case "KeyW":
+      moveForward = true;
+      break;
+    case "KeyS":
+      moveBackward = true;
+      break;
+    case "KeyA":
+      moveLeft = true;
+      break;
+    case "KeyD":
+      moveRight = true;
+      break;
+    default:
+      break;
+  }
+});
+
+document.addEventListener("keyup", (e) => {
+  switch (e.code) {
+    case "KeyW":
+      moveForward = false;
+      break;
+    case "KeyS":
+      moveBackward = false;
+      break;
+    case "KeyA":
+      moveLeft = false;
+      break;
+    case "KeyD":
+      moveRight = false;
+      break;
+    default:
+      break;
+  }
+});
 // Animation function //
 function animate() {
   // required if controls.enableDamping or controls.autoRotate are set to true
@@ -338,7 +378,8 @@ function animate() {
     // Check if mixer is initialized
     mixer.update(clock.getDelta()); // Update the animation mixer
   }
-  // animateSpotlightCircularMotion(); // new
+
+  updateCharacterPosition(); // character positioning function call
 
   renderer.render(scene, camera);
   // a method used to create smooth and efficient animations by synchronizing with the browser's repaint cycle.
