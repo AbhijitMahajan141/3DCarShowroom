@@ -1,13 +1,15 @@
 import * as THREE from "three";
 import { OrbitControls } from "https://threejs.org/examples/jsm/controls/OrbitControls.js";
-import { GLTFLoader } from "https://threejs.org/examples/jsm/loaders/GLTFLoader.js";
+// import { GLTFLoader } from "https://threejs.org/examples/jsm/loaders/GLTFLoader.js";
 import { FBXLoader } from "https://threejs.org/examples/jsm/loaders/FBXLoader.js";
+import { characterControls as CharacterControls } from "./characterControls.js";
 
-// const car = new URL("./assets/centenario/scene.gltf", import.meta.url);
-const character = new URL("./assets/character/char.fbx", import.meta.url);
-const characterAnim = new URL("./assets/character/hiphop.fbx", import.meta.url);
-const characterAnim2 = new URL(
-  "./assets/character/hiphop2.fbx",
+const jamesIdle = new URL(
+  "./assets/character/jamesIdleSkin.fbx",
+  import.meta.url
+);
+const jamesWalk = new URL(
+  "./assets/character/jamesWalkSpot.fbx",
   import.meta.url
 );
 
@@ -26,12 +28,12 @@ const scene = new THREE.Scene();
 
 // Camera
 const camera = new THREE.PerspectiveCamera(
-  30,
+  45,
   window.innerWidth / window.innerHeight,
-  1,
+  0.1,
   100
 );
-camera.position.set(0, 4, 8);
+camera.position.set(0, 5, 5);
 
 // Lighting
 const light1 = new THREE.AmbientLight(0x404040, 1); // does not cast shadows
@@ -49,25 +51,13 @@ light.shadow.mapSize.height = 1024; // default
 light.shadow.camera.near = 0.5; // default
 light.shadow.camera.far = 500; // default
 
-// Fog //
-// scene.fog = new THREE.Fog(0xffffff, 0, 20);
-// scene.fog = new THREE.FogExp2(0xffffff, 0.1);
-
-// Texture Loaders //
-// const textureloader = new THREE.TextureLoader();
-// scene.background = textureloader.load("./assets/img1.jpg");
-// const cubeTextureLoader = new THREE.CubeTextureLoader();
-// scene.background = cubeTextureLoader.load([
-//   "./assets/img1.jpg",
-//   "./assets/img1.jpg",
-//   "./assets/img1.jpg",
-//   "./assets/img1.jpg",
-//   "./assets/img1.jpg",
-//   "./assets/img1.jpg",
-// ]);
-
 // Orbit Controls //
 const orbit = new OrbitControls(camera, renderer.domElement);
+orbit.enableDamping = true;
+orbit.minDistance = 5;
+orbit.maxDistance = 15;
+orbit.enablePan = false;
+orbit.maxPolarAngle = Math.PI / 2 - 0.05;
 orbit.update(); // Must be called after any manual changes to camera's transform as above
 
 // Plane
@@ -90,67 +80,75 @@ scene.add(gridHelper);
 const helper = new THREE.CameraHelper(light.shadow.camera);
 scene.add(helper);
 
-// Car loader //
-// const assetLoader = new GLTFLoader();
-// assetLoader.load(
-//   car.href,
-//   function (gltf) {
-//     const model = gltf.scene;
-//     model.traverse((c) => {
-//       c.castShadow = true;
-//     });
-//     model.position.set(0, 0, 0);
-//     model.scale.set(1, 1, 1);
-
-//     scene.add(model);
-//   },
-//   undefined,
-//   function (error) {
-//     console.error(error);
-//   }
-// );
-
 // Character Loader //
 let mixer = null;
-let animationAction = null;
+
 const fbxLoader = new FBXLoader();
-fbxLoader.load(character.href, (obj) => {
-  obj.scale.setScalar(0.01);
-  obj.traverse((c) => {
+const animationsMap = new Map();
+// Instance of CharacterControlls //
+let characterControlsInstance;
+fbxLoader.load(jamesIdle.href, (jamesIdle) => {
+  jamesIdle.scale.setScalar(0.01);
+  jamesIdle.traverse((c) => {
     c.castShadow = true;
   });
+  scene.add(jamesIdle);
 
-  fbxLoader.load(characterAnim.href, (anim) => {
-    mixer = new THREE.AnimationMixer(obj);
-    const action = mixer.clipAction(anim.animations[0]);
-    // action.play();
-    animationAction = action;
+  // Mixer is used to Clip 2 or more animations so no need to use multiple instances of mixer
+  // Have only one mixer
+  mixer = new THREE.AnimationMixer(jamesIdle);
+  animationsMap.set("Idle", mixer.clipAction(jamesIdle.animations[0]));
+
+  fbxLoader.load(jamesWalk.href, (jamesWalk) => {
+    animationsMap.set("Walk", mixer.clipAction(jamesWalk.animations[0]));
+    // Calling the CharacterController after both the models are added in animationsMap
+    characterControlsInstance = new CharacterControls(
+      jamesIdle,
+      mixer,
+      animationsMap,
+      orbit,
+      camera,
+      "Idle"
+    );
   });
-  scene.add(obj);
 });
 
-document.addEventListener("keydown", (e) => {
-  if (e.code === "Space") {
-    if (mixer && mixer._actions.length > 0) {
-      const action = mixer._actions[0]; // Assuming only one animation action
-      action.play(); // Start playing the animation
+// Key Controls for character //
+const keysPressed = {}; // store every keyup or down event in this object
+document.addEventListener(
+  "keydown",
+  (e) => {
+    if (e.shiftKey && characterControlsInstance) {
+      characterControlsInstance.switchRunToggle();
+    } else {
+      keysPressed[e.key.toLowerCase()] = true; // added to keyspressed object
     }
-  } else if (e.code === "Tab") {
-    if (animationAction) {
-      animationAction.stop();
-    }
-  }
-});
+  },
+  false
+);
 
+document.addEventListener(
+  "keyup",
+  (e) => {
+    keysPressed[e.key.toLowerCase()] = false; // removed from keyspressed object
+  },
+  false
+);
+
+// The Animate function //
+const clock = new THREE.Clock();
 function animation() {
-  if (mixer !== null) {
+  let mixerUpdateDelta = clock.getDelta();
+  if (characterControlsInstance) {
+    // Calling update method of characterControls, passing deltaTime and keysPressed
+    characterControlsInstance.update(mixerUpdateDelta, keysPressed);
     // Check if mixer is initialized
-    mixer.update(clock.getDelta()); // Update the animation mixer
+    // mixer.update(clock.getDelta()); // Update the animation mixer
   }
   renderer.render(scene, camera);
   requestAnimationFrame(animation);
 }
-const clock = new THREE.Clock();
+
 animation();
 
 // Responsive Window //
